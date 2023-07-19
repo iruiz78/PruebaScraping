@@ -46,20 +46,7 @@ namespace PruebaScrap
                 }
             }
             List<string> Data = products.Select(n => $" {n.id}  {n.productName}").ToList();
-
-            var path = "ProductosVtex.csv";
-            MemoryStream stream = new MemoryStream();
-            if (!File.Exists(path))
-            {
-                var file = File.CreateText(path);
-                file.Close();
-            }
-            byte[] buffer = File.ReadAllBytes(path);
-            byte[] newData = System.Text.Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, Data));
-            stream.Write(newData, 0, newData.Length);
-            stream.Write(buffer, 0, buffer.Length);
-            File.WriteAllBytes(path, stream.GetBuffer());
-            stream.Dispose();
+            await ProcessFile(Data, "ProductosVtex.csv");
         }
 
         private static async Task<List<Category>> GetCategories()
@@ -89,6 +76,23 @@ namespace PruebaScrap
             {
                 return null;
             }
+        }
+
+        private static async Task ProcessFile(List<string> data, string nameFile)
+        {
+            var path = nameFile;
+            MemoryStream stream = new MemoryStream();
+            if (!File.Exists(path))
+            {
+                var file = File.CreateText(path);
+                file.Close();
+            }
+            byte[] buffer = File.ReadAllBytes(path);
+            byte[] newData = System.Text.Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, data));
+            stream.Write(newData, 0, newData.Length);
+            stream.Write(buffer, 0, buffer.Length);
+            File.WriteAllBytes(path, stream.GetBuffer());
+            stream.Dispose();
         }
 
         private static async void GetPruebaSelenium()
