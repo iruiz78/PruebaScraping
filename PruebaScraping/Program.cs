@@ -16,6 +16,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using System.Threading;
 
 namespace PruebaScrap
 {
@@ -29,6 +30,40 @@ namespace PruebaScrap
            await ScrapingVtex();
         }
 
+        private static async Task ScrapingSelenium()
+        {
+            // Initialize the Chrome Driver
+            using (var driver = new ChromeDriver())
+            {
+                var products = string.Empty;
+
+                // Go to the home page                 
+                driver.Navigate().GoToUrl("https://www.mercadolibre.com.ar/");
+                Thread.Sleep(5000);
+
+                // Get the page elements
+                var NroMatricula = driver.FindElement(By.Id("cb1-edit"));
+                NroMatricula.SendKeys("Notebook");
+
+                // Submit
+                var buttomSubmit = driver.FindElement(By.ClassName("nav-search-btn"));
+                buttomSubmit.Click();
+
+                //// Extract the text and save it into result.txt
+                var listOfElements = driver.FindElements(By.ClassName("ui-search-result__content-wrapper"));
+                foreach (var element in listOfElements)
+                {
+                    products += "-----------------------------------------------" + Environment.NewLine;
+                    products += element.Text;
+                    products += "-----------------------------------------------" + Environment.NewLine;
+                }
+                driver.GetScreenshot().SaveAsFile($"screen.png", ScreenshotImageFormat.Png);
+
+                File.WriteAllText("result.txt", products);
+            }
+        }
+
+        #region VTEX
         public static async Task ScrapingVtex()
         {
             var Categories = await GetCategories();
@@ -46,7 +81,7 @@ namespace PruebaScrap
                 }
             }
             List<string> Data = products.Select(n => $" {n.id}  {n.productName}").ToList();
-            await ProcessFile(Data, "ProductosVtex.csv");
+            ProcessFile(Data, "ProductosVtex.csv");
         }
 
         private static async Task<List<Category>> GetCategories()
@@ -78,7 +113,7 @@ namespace PruebaScrap
             }
         }
 
-        private static async Task ProcessFile(List<string> data, string nameFile)
+        private static void ProcessFile(List<string> data, string nameFile)
         {
             var path = nameFile;
             MemoryStream stream = new MemoryStream();
@@ -93,38 +128,6 @@ namespace PruebaScrap
             stream.Write(buffer, 0, buffer.Length);
             File.WriteAllBytes(path, stream.GetBuffer());
             stream.Dispose();
-        }
-
-        private static async Task ScrapingSelenium()
-        {
-            // Initialize the Chrome Driver
-            using (var driver = new ChromeDriver())
-            {
-                var products = string.Empty;
-               
-                // Go to the home page                 
-                driver.Navigate().GoToUrl("https://www.mercadolibre.com.ar/");
-                                       
-                // Get the page elements
-                var NroMatricula = driver.FindElement(By.Id("cb1-edit"));
-                NroMatricula.SendKeys("Notebook");
-
-                // Submit
-                var buttomSubmit = driver.FindElement(By.ClassName("nav-search-btn"));                    
-                buttomSubmit.Click();
-
-                //// Extract the text and save it into result.txt
-                var listOfElements = driver.FindElements(By.ClassName("ui-search-result__content-wrapper"));
-                foreach (var element in listOfElements)
-                {
-                    products += "-----------------------------------------------"+ Environment.NewLine;
-                    products += element.Text;
-                    products += "-----------------------------------------------" + Environment.NewLine;
-                }                    
-                driver.GetScreenshot().SaveAsFile($"screen.png", ScreenshotImageFormat.Png);
-                
-                File.WriteAllText("result.txt", products);
-            }
         }
     }
 
