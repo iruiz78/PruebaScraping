@@ -24,7 +24,7 @@ namespace PruebaScrap
     {
         static async Task Main(string[] args)
         {
-            //GetPruebaSelenium();
+           await ScrapingSelenium();
 
            await ScrapingVtex();
         }
@@ -95,44 +95,35 @@ namespace PruebaScrap
             stream.Dispose();
         }
 
-        private static async void GetPruebaSelenium()
+        private static async Task ScrapingSelenium()
         {
             // Initialize the Chrome Driver
             using (var driver = new ChromeDriver())
             {
-                var h3 = string.Empty;
-                for (int i = 65466; i < 65490; i++)
+                var products = string.Empty;
+               
+                // Go to the home page                 
+                driver.Navigate().GoToUrl("https://www.mercadolibre.com.ar/");
+                                       
+                // Get the page elements
+                var NroMatricula = driver.FindElement(By.Id("cb1-edit"));
+                NroMatricula.SendKeys("Notebook");
+
+                // Submit
+                var buttomSubmit = driver.FindElement(By.ClassName("nav-search-btn"));                    
+                buttomSubmit.Click();
+
+                //// Extract the text and save it into result.txt
+                var listOfElements = driver.FindElements(By.ClassName("ui-search-result__content-wrapper"));
+                foreach (var element in listOfElements)
                 {
-                    // Go to the home page
-                    driver.Navigate().GoToUrl("https://www.ssn.gob.ar/storage/registros/productores/productoresactivosfiltro.asp");
-
-                    driver.ExecuteScript("document.getElementsByName('form1')[0].target=''");
-
-                    // Get the page elements
-                    var NroMatricula = driver.FindElement(By.Id("matricula"));
-                    NroMatricula.SendKeys(i.ToString());
-
-                    var FromSubmit = driver.FindElement(By.Name("form1"));
-                    FromSubmit.TagName.Replace("target=\"_blank\"", "");
-
-                    var SubmitButton = driver.FindElement(By.Name("Submit"));
-                    SubmitButton.Submit();
-
-                    //// Extract the text and save it into result.txt
-                    var listOfElements = driver.FindElements(By.XPath("//h3"));
-                    foreach (var element in listOfElements)
-                    {
-                        h3 += "|" + element.Text;
-                    }
-                    listOfElements = driver.FindElements(By.XPath("//h5"));
-                    foreach (var element in listOfElements)
-                    {
-                        h3 += "|" + element.Text;
-                    }
-                    h3 += System.Environment.NewLine;
-                    driver.GetScreenshot().SaveAsFile($"screen{i}.png", ScreenshotImageFormat.Png);
-                }
-                File.WriteAllText("result.txt", h3);
+                    products += "-----------------------------------------------"+ Environment.NewLine;
+                    products += element.Text;
+                    products += "-----------------------------------------------" + Environment.NewLine;
+                }                    
+                driver.GetScreenshot().SaveAsFile($"screen.png", ScreenshotImageFormat.Png);
+                
+                File.WriteAllText("result.txt", products);
             }
         }
     }
