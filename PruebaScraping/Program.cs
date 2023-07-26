@@ -129,6 +129,7 @@ namespace PruebaScrap
             File.WriteAllBytes(path, stream.GetBuffer());
             stream.Dispose();
         }
+        #endregion
     }
 
 
