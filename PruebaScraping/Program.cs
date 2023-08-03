@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 
 namespace PruebaScrap
 {
@@ -25,6 +26,8 @@ namespace PruebaScrap
     {
         static async Task Main(string[] args)
         {
+
+           await ScrapingCuitSelenium();
            await ScrapingSelenium();
 
            await ScrapingVtex();
@@ -42,8 +45,8 @@ namespace PruebaScrap
                 Thread.Sleep(5000);
 
                 // Get the page elements
-                var NroMatricula = driver.FindElement(By.Id("cb1-edit"));
-                NroMatricula.SendKeys("Notebook");
+                var busqueda = driver.FindElement(By.Id("cb1-edit"));
+                busqueda.SendKeys("Notebook");
 
                 // Submit
                 var buttomSubmit = driver.FindElement(By.ClassName("nav-search-btn"));
@@ -60,6 +63,43 @@ namespace PruebaScrap
                 driver.GetScreenshot().SaveAsFile($"screen.png", ScreenshotImageFormat.Png);
 
                 File.WriteAllText("result.txt", products);
+            }
+        }
+        private static async Task ScrapingCuitSelenium()
+        {
+            // Initialize the Chrome Driver
+            using (var driver = new ChromeDriver())
+            {
+                var products = string.Empty;
+
+                // Go to the home page                 
+                driver.Navigate().GoToUrl("https://www.anses.gob.ar/consultas/constancia-de-cuil");
+
+                driver.ExecuteScript("document.getElementById('edit-sexo-m').click();"); // Agregar genero a busacar
+                // Get the page elements
+                var NroDni = driver.FindElement(By.Id("edit-nro-doc"));
+                NroDni.SendKeys("");// Agregar nro de dni a busacar
+
+                var NameCuil = driver.FindElement(By.Id("edit-name"));
+                NameCuil.SendKeys(""); // Agregar nombre busacar
+
+                var lastNameCuil = driver.FindElement(By.Id("edit-lastname"));
+                lastNameCuil.SendKeys(""); // Agregar Apellido a busacar
+
+                var DateCuil = driver.FindElement(By.Id("edit-date"));
+                DateCuil.SendKeys(""); // Agregar fecha de nacimientoa busacar
+
+                // Submit
+                var buttomSubmit = driver.FindElement(By.Id("edit-submit"));
+                buttomSubmit.Click();
+
+                Thread.Sleep(5000);
+                driver.GetScreenshot().SaveAsFile($"screen.png", ScreenshotImageFormat.Png);
+
+                // Descargo constancia Cuil
+                var descargar = driver.FindElement(By.ClassName("btn-default"));
+                descargar.Click();
+                Thread.Sleep(5000);
             }
         }
 
@@ -130,8 +170,8 @@ namespace PruebaScrap
             stream.Dispose();
         }
         #endregion
-    }
 
+    }
 
     struct Category{
         public string id;
